@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#153f3a">
+    <meta name="description" content="The IoT-Ticket Snake game, playable as a standalone webpage.">
+    <meta name="shared-score-url" content="https://snake-game-high-score.jamokoo.workers.dev/">
+    <title>IoT-Ticket Snake</title>
+    <link rel="icon" href="assets/sprites/apple.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="styles.css">
+    <script src="game-core.js" defer></script>
+    <script src="shared-score.js" defer></script>
+    <script src="game.js" defer></script>
+  </head>
+  <body data-layout="modern">
+    <button id="layout" class="layout-button" type="button" aria-label="Switch to original dashboard layout" aria-pressed="false" title="Switch to original dashboard layout">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <rect x="3" y="3" width="18" height="18" rx="2"></rect>
+        <path d="M3 9h18M9 9v12"></path>
+      </svg>
+    </button>
+    <main class="game" aria-label="IoT-Ticket Snake">
+      <img class="background-art" src="assets/images/background.png" alt="" draggable="false">
+      <div class="scoreboard" aria-label="Scoreboard">
+        <div class="score-panel current-score">
+          <span class="score-label">Score</span>
+          <strong id="score" class="score-value" aria-live="polite">0</strong>
+        </div>
+        <div class="score-panel high-score">
+          <span id="high-score-label" class="score-label">Hi-Score</span>
+          <strong id="high-score" class="score-value">0</strong>
+        </div>
+      </div>
+      <div id="stage" class="stage" aria-busy="true">
+        <img class="frame-art" src="assets/images/frame.jpg" alt="" draggable="false">
+        <div id="board" class="board" role="img" aria-label="10 by 10 Snake board" tabindex="0"></div>
+        <button id="title-screen" class="screen title-screen" type="button" aria-label="Start game" disabled>
+          <img class="screen-art" src="assets/images/title.jpg" alt="IoT-Ticket Snake. Press Start to play." draggable="false">
+        </button>
+        <section id="result-screen" class="screen result-screen" aria-labelledby="result-title" hidden>
+          <h2 id="result-title" class="visually-hidden">Game over</h2>
+          <img id="result-art" class="screen-art" src="assets/images/game-over.jpg" alt="" draggable="false">
+          <div class="result">
+            <span class="final-score-label">Final Score</span>
+            <strong id="final-score">0</strong>
+          </div>
+        </section>
+      </div>
+
+      <div class="controls" aria-label="Game controls">
+        <button id="start" class="image-button start" type="button" aria-label="Start game" disabled>
+          <img src="assets/controls/start.png" alt="" draggable="false">
+        </button>
+        <div class="direction-pad" aria-label="Direction controls">
+          <button class="image-button up" data-direction="up" type="button" aria-label="Move up" disabled>
+            <img src="assets/controls/up.png" alt="" draggable="false">
+          </button>
+          <button class="image-button left" data-direction="left" type="button" aria-label="Move left" disabled>
+            <img src="assets/controls/left.png" alt="" draggable="false">
+          </button>
+          <button class="image-button down" data-direction="down" type="button" aria-label="Move down" disabled>
+            <img src="assets/controls/down.png" alt="" draggable="false">
+          </button>
+          <button class="image-button right" data-direction="right" type="button" aria-label="Move right" disabled>
+            <img src="assets/controls/right.png" alt="" draggable="false">
+          </button>
+        </div>
+        <button id="stop" class="image-button stop" type="button" aria-label="Stop game" disabled>
+          <img src="assets/controls/stop.png" alt="" draggable="false">
+        </button>
+      </div>
+
+      <p id="status" class="visually-hidden" role="status">Loading sprites...</p>
+      <p id="notice" class="notice" role="status" hidden></p>
+      <noscript><p class="notice">Enable JavaScript to play Snake.</p></noscript>
+    </main>
+  </body>
+</html>

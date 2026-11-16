@@ -1,0 +1,188 @@
+[
+  {
+    "file": "images/background.png",
+    "mimeType": "image/png",
+    "bytes": 1296276,
+    "sha256": "5f293ca13e7e6692e346516b4fc2e9a62378195491f447596df6040496f0da5c"
+  },
+  {
+    "file": "images/frame.jpg",
+    "mimeType": "image/jpeg",
+    "bytes": 101744,
+    "sha256": "b43da2f08cdc226108d32766b9c652ec90e1f86b7088694686a458382a35045d"
+  },
+  {
+    "file": "images/board.avif",
+    "mimeType": "image/avif",
+    "bytes": 43735,
+    "sha256": "ca5c82be0614a2961c1e86a224165ab3910c226c2f88cacdcbbe14e9ede899fb"
+  },
+  {
+    "file": "images/game-over.jpg",
+    "mimeType": "image/jpeg",
+    "bytes": 212016,
+    "sha256": "ba2e3139fddd01d3b8361642f091db7c013e2fafe8ea7d012479d3f4ccda1944"
+  },
+  {
+    "file": "images/title.jpg",
+    "mimeType": "image/jpeg",
+    "bytes": 144594,
+    "sha256": "80074f19e46faaac83a330c486ded7d83f0340b9fb23e491c631abfc70804088"
+  },
+  {
+    "file": "sprites/apple.svg",
+    "mimeType": "image/svg+xml",
+    "bytes": 726,
+    "sha256": "a25879ec63b10893b18483029af010235a8a15bb81d419b3c2192c7604aa2c6b"
+  },
+  {
+    "file": "sprites/headDown.png",
+    "mimeType": "image/png",
+    "bytes": 3303,
+    "sha256": "61328435af92aed8abedd298a317c30ad0e1cbd3fa9dcbb01cb5ff5ddff05d6a"
+  },
+  {
+    "file": "sprites/headLeft.png",
+    "mimeType": "image/png",
+    "bytes": 3089,
+    "sha256": "0a2c39eaba2f8bc1cbb19db9fc15d97a96e88012fc5e7cb4abc065b3a385ce82"
+  },
+  {
+    "file": "sprites/headUp.png",
+    "mimeType": "image/png",
+    "bytes": 3289,
+    "sha256": "a059cadd095ba9bc51c47ce7309172ebea8a770f616c7b32dddb65d0690836e4"
+  },
+  {
+    "file": "sprites/headRight.png",
+    "mimeType": "image/png",
+    "bytes": 3191,
+    "sha256": "33855e2b38faaaa1dbd66b98fa19b761e7d31e4491e9c48edbfbdce48cf7f157"
+  },
+  {
+    "file": "sprites/bodyVertical.png",
+    "mimeType": "image/png",
+    "bytes": 1118,
+    "sha256": "94f9cea79268ec7624328e7d08d992382436de8063bf3230c31ff2b39e1cd7ee"
+  },
+  {
+    "file": "sprites/bodyHorizontal.png",
+    "mimeType": "image/png",
+    "bytes": 1134,
+    "sha256": "bdd0e657ee68e67c774e071b1f590fbb3279027a59319cef14ba9d08b380fd3e"
+  },
+  {
+    "file": "sprites/bodyBottomleft.png",
+    "mimeType": "image/png",
+    "bytes": 2118,
+    "sha256": "02064cb9e48c318c7be5afd0940c0527e60e1f0b1806a2ad349b029985a8a9d8"
+  },
+  {
+    "file": "sprites/bodyBottomright.png",
+    "mimeType": "image/png",
+    "bytes": 2070,
+    "sha256": "0ae57193688539cf27c6f1db85e99a5652f28bc213332d8cc088b12f1192b434"
+  },
+  {
+    "file": "sprites/bodyTopleft.png",
+    "mimeType": "image/png",
+    "bytes": 2149,
+    "sha256": "7862bac72964d85b4ebd1df69f0a82e7dd89677cf095b73556f01874c93e8aa3"
+  },
+  {
+    "file": "sprites/bodyTopright.png",
+    "mimeType": "image/png",
+    "bytes": 2133,
+    "sha256": "a6db3c763e000dbcac29a24c718650b2c49512d32799d057ee396a90bab03cac"
+  },
+  {
+    "file": "sprites/tailDown.png",
+    "mimeType": "image/png",
+    "bytes": 1386,
+    "sha256": "648d33326770e1527a10d83f33bf41a1c56f00b8d4e0524772f97f908066c54a"
+  },
+  {
+    "file": "sprites/tailLeft.png",
+    "mimeType": "image/png",
+    "bytes": 1387,
+    "sha256": "eda3360d54d9b42ac877e065feff8e8eee392f090a29f67ba1e626ccd99dc023"
+  },
+  {
+    "file": "sprites/tailUp.png",
+    "mimeType": "image/png",
+    "bytes": 1458,
+    "sha256": "25e2f60512ab65d0fe998c86d373ec706f4ed31efd4197fab7aa011b469eda80"
+  },
+  {
+    "file": "sprites/tailRight.png",
+    "mimeType": "image/png",
+    "bytes": 1299,
+    "sha256": "c4afc34f869184490659c48235dc0a3391bdf57036e58b30f848ca00461d1a4b"
+  },
+  {
+    "file": "sprites/empty.svg",
+    "mimeType": "image/svg+xml",
+    "bytes": 70,
+    "sha256": "d003a37d8f1f05aed5689ac00227fa52e06ffdd65c48f51c4a5beac67164a1f9"
+  },
+  {
+    "file": "controls/up.png",
+    "mimeType": "image/png",
+    "bytes": 57477,
+    "sha256": "0933d17c0c0b255d9b9fa6ec2cd49996763a5e780f7536f653ac093bf1afeeb3"
+  },
+  {
+    "file": "controls/right.png",
+    "mimeType": "image/png",
+    "bytes": 51682,
+    "sha256": "11f6a21ddbdc6e639c14015252394255ecd113950087f8fa2aaca37e3ac21d0e"
+  },
+  {
+    "file": "controls/down.png",
+    "mimeType": "image/png",
+    "bytes": 51750,
+    "sha256": "9f122ecf37cf6156202268f80975ba328fe1fa385282a9219f6a25ba73a62fa9"
+  },
+  {
+    "file": "controls/left.png",
+    "mimeType": "image/png",
+    "bytes": 53976,
+    "sha256": "14605b9fbb085dddf126f1604b16d1b956fe1fbcca32e45b88ad364debab48a6"
+  },
+  {
+    "file": "controls/start.png",
+    "mimeType": "image/png",
+    "bytes": 51782,
+    "sha256": "378845544a5cf5f6faaac9c30e99e7184e0b3b233182f9a74b3e2a48712eee17"
+  },
+  {
+    "file": "controls/stop.png",
+    "mimeType": "image/png",
+    "bytes": 55802,
+    "sha256": "6253a678c105c19c91c79ef9ff3b57cbf26a09540c5f1bdbdda04f0c3d6432d2"
+  },
+  {
+    "file": "audio/title.mp3",
+    "mimeType": "audio/mp3",
+    "bytes": 744525,
+    "sha256": "80d45bd3589f03f2f7d8707c3ec1fc978bb0bf990c1fa157d9e1d939d4f77164"
+  },
+  {
+    "file": "audio/ingame.mp3",
+    "mimeType": "audio/mp3",
+    "bytes": 1088541,
+    "sha256": "d3a757e3a671ede511684c4d0b9dbba4c31a6d95f2c3903447a06112982d5028"
+  },
+  {
+    "file": "audio/death.mp3",
+    "mimeType": "audio/mp3",
+    "bytes": 14210,
+    "sha256": "86ded8dae163bbe5f7d8f27af9f872c9c1e14cf22ff8de7a12be5cca2c0813f6"
+  },
+  {
+    "file": "audio/eat.mp3",
+    "mimeType": "audio/mp3",
+    "bytes": 18720,
+    "sha256": "5565b8524b286f6e4dac7147934301027936570f896ca904992195be7f633a61"
+  }
+]

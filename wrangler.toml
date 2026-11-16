@@ -1,0 +1,11 @@
+name = "snake-game-high-score"
+main = "shared-score-worker.mjs"
+compatibility_date = "2026-11-16"
+
+[[durable_objects.bindings]]
+name = "HIGH_SCORE"
+class_name = "HighScore"
+
+[exports.HighScore]
+type = "durable-object"
+storage = "sqlite"
