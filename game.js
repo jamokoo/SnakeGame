@@ -3,9 +3,14 @@
 
   const { SIZE, TICK_MS, SPRITES, OPPOSITE_DIRECTIONS, createGame, step, getBoard } = window.SnakeGame;
   const layoutButton = document.getElementById("layout");
+  const musicMuteButton = document.getElementById("music-mute");
+  const musicMutedMark = document.getElementById("music-muted-mark");
+  const initializeDialog = document.getElementById("initialize");
+  const initializeButton = document.getElementById("initialize-button");
   const board = document.getElementById("board");
   const stage = document.getElementById("stage");
   const titleScreen = document.getElementById("title-screen");
+  const titleLyrics = document.getElementById("title-lyrics");
   const resultScreen = document.getElementById("result-screen");
   const startButton = document.getElementById("start");
   const stopButton = document.getElementById("stop");
@@ -20,6 +25,25 @@
   const eatSound = new Audio("assets/audio/eat.mp3");
   const deathSound = new Audio("assets/audio/death.mp3");
   const audioRequests = new Map();
+  const titleCues = [
+    [3.49, "IOT-Ticket Snake, slithering through the leaves,"],
+    [8.39, "Looking for apples, under the jungle eaves."],
+    [11.29, "It grows a little longer, with every apple bite,"],
+    [16.03, "But must not nibble its tail, or it's out of sight!"],
+    [20.81, "IOT-Ticket Snake, IOT-Ticket Snake,"],
+    [24.81, "In the jungle so wide, what path will you take?"],
+    [27.81, "Find all the apples, grow long and strong,"],
+    [30.81, "But don't eat your tail, or it won't be long!"],
+    [38.49, "Through the trees, the IOT-Ticket Snake winds,"],
+    [42.29, "A game of growing, with fun in mind."],
+    [44.89, "It's a jungle adventure, with apples to find,"],
+    [47.89, "Just keep away from your tail, and you'll do just fine!"],
+    [54.06, "IOT-Ticket Snake, IOT-Ticket Snake,"],
+    [57.96, "In the jungle so wide, what path will you take?"],
+    [61.96, "Find all the apples, grow long and strong,"],
+    [63.96, "But don't eat your tail, or it won't be long!"],
+    [68, ""],
+  ];
   music.preload = "none";
   eatSound.preload = "none";
   deathSound.preload = "none";
@@ -27,8 +51,7 @@
   let highScore = 0;
   let sharedHighScore = null;
   let pendingSharedScore = 0;
-  let submittingSharedScore = false;
-  let lastQueuedRoundScore = 0;
+  let sharedScoreRequests = Promise.resolve();
   let storageAvailable = true;
   let ready = false;
   let state = null;
@@ -59,20 +82,26 @@
 
   const sharedUrl = document.querySelector('meta[name="shared-score-url"]').content.trim();
   const sharedScore = sharedUrl ? window.createSharedScore(sharedUrl) : null;
+  let sharedScoreUnavailable = !sharedScore;
 
   function displayHighScore() {
-    highScoreLabel.textContent = sharedHighScore === null ? "Hi-Score" : "Shared";
+    highScoreLabel.textContent =
+      sharedScoreUnavailable && sharedHighScore === null ? "Hi-Score Local" : "Hi-Score";
     highScoreDisplay.textContent = sharedHighScore === null ? highScore : sharedHighScore;
   }
 
+  displayHighScore();
+
   function sharedScoreFailed(error) {
     sharedHighScore = null;
+    sharedScoreUnavailable = true;
     displayHighScore();
     report("Shared hi-score unavailable; showing your personal hi-score.", error);
   }
 
   function sharedScoreReceived(score) {
     sharedHighScore = Math.max(sharedHighScore ?? 0, score);
+    sharedScoreUnavailable = false;
     displayHighScore();
     if (notice.textContent === "Shared hi-score unavailable; showing your personal hi-score.") {
       notice.hidden = true;
@@ -80,39 +109,26 @@
     }
   }
 
-  async function submitSharedScore() {
-    if (submittingSharedScore || pendingSharedScore === 0) return;
-    submittingSharedScore = true;
-    try {
-      while (pendingSharedScore > 0) {
-        const score = pendingSharedScore;
-        const result = await sharedScore.submit(score);
-        sharedScoreReceived(result);
-        if (pendingSharedScore <= score) pendingSharedScore = 0;
+  function refreshSharedScore(roundScore) {
+    if (roundScore !== undefined) pendingSharedScore = Math.max(pendingSharedScore, roundScore);
+    sharedScoreRequests = sharedScoreRequests.then(async () => {
+      try {
+        const score = await sharedScore.read();
+        sharedScoreReceived(score);
+        if (roundScore !== undefined && pendingSharedScore > score) {
+          const submittedScore = pendingSharedScore;
+          sharedScoreReceived(await sharedScore.submit(submittedScore));
+          if (pendingSharedScore <= submittedScore) pendingSharedScore = 0;
+        } else if (roundScore !== undefined) {
+          pendingSharedScore = 0;
+        }
+      } catch (error) {
+        sharedScoreFailed(error);
       }
-    } catch (error) {
-      sharedScoreFailed(error);
-    } finally {
-      submittingSharedScore = false;
-    }
+    });
   }
 
-  async function refreshSharedScore() {
-    try {
-      sharedScoreReceived(await sharedScore.read());
-      if (state !== null && state.score > sharedHighScore) {
-        pendingSharedScore = Math.max(pendingSharedScore, state.score);
-      }
-      submitSharedScore();
-    } catch (error) {
-      sharedScoreFailed(error);
-    }
-  }
-
-  if (sharedScore) {
-    refreshSharedScore();
-    setInterval(refreshSharedScore, 30000);
-  }
+  if (sharedScore) refreshSharedScore();
 
   function saveHighScore() {
     if (state.score > highScore) {
@@ -127,12 +143,6 @@
         }
       }
     }
-    if (sharedScore && state.score > lastQueuedRoundScore) {
-      lastQueuedRoundScore = state.score;
-      if (state.score <= (sharedHighScore ?? 0)) return;
-      pendingSharedScore = Math.max(pendingSharedScore, state.score);
-      submitSharedScore();
-    }
   }
 
   function stopAudio(audio) {
@@ -140,6 +150,24 @@
     audio.pause();
     audio.currentTime = 0;
   }
+
+  function updateTitleLyrics() {
+    let text = "";
+    if (!titleScreen.hidden && document.body.dataset.layout === "modern" && !music.paused) {
+      for (let i = titleCues.length - 1; i >= 0; i--) {
+        if (music.currentTime >= titleCues[i][0]) {
+          text = titleCues[i][1];
+          break;
+        }
+      }
+    }
+    titleLyrics.textContent = text;
+    titleLyrics.hidden = !text;
+  }
+
+  ["timeupdate", "playing", "pause", "seeked", "ended"].forEach((event) => {
+    music.addEventListener(event, updateTitleLyrics);
+  });
 
   function playAudio(audio) {
     if (!soundEnabled) return;
@@ -159,6 +187,10 @@
     music.src = `assets/audio/${track}.mp3`;
     music.loop = loop;
     playAudio(music);
+  }
+
+  function playTitleMusic() {
+    playMusic(document.body.dataset.layout === "dashboard" ? "title" : "title_new", true);
   }
 
   function spritePath(name) {
@@ -196,6 +228,7 @@
   function finishGame(stopped = false) {
     clearInterval(clock);
     clock = null;
+    if (sharedScore) refreshSharedScore(state.score);
     stopAudio(music);
     stopAudio(eatSound);
     const won = state.status === "won";
@@ -227,15 +260,15 @@
   }
 
   function startGame() {
-    if (!ready || (state !== null && state.status === "running")) return;
+    if (initializeDialog.open || !ready || (state !== null && state.status === "running")) return;
     clearInterval(clock);
     [music, eatSound, deathSound].forEach(stopAudio);
     soundEnabled = true;
     state = createGame();
-    lastQueuedRoundScore = 0;
     direction = state.direction;
     swipeStart = null;
     titleScreen.hidden = true;
+    updateTitleLyrics();
     resultScreen.hidden = true;
     render();
     updateControls();
@@ -257,15 +290,31 @@
     }
   }
 
+  musicMuteButton.addEventListener("click", () => {
+    music.muted = !music.muted;
+    musicMuteButton.setAttribute("aria-pressed", String(music.muted));
+    musicMuteButton.title = music.muted ? "Unmute music" : "Mute music";
+    musicMutedMark.hidden = !music.muted;
+  });
+
   layoutButton.addEventListener("click", () => {
     const dashboard = document.body.dataset.layout !== "dashboard";
     document.body.dataset.layout = dashboard ? "dashboard" : "modern";
-    const label = dashboard ? "Switch to modern layout" : "Switch to original dashboard layout";
+    const label = dashboard ? "Switch to modern version" : "Switch to original dashboard version";
     layoutButton.setAttribute("aria-label", label);
     layoutButton.setAttribute("aria-pressed", String(dashboard));
     layoutButton.title = label;
     swipeStart = null;
+    if (!initializeDialog.open && !titleScreen.hidden) playTitleMusic();
+    updateTitleLyrics();
   });
+
+  initializeDialog.addEventListener("cancel", (event) => event.preventDefault());
+  initializeButton.addEventListener("click", () => {
+    initializeDialog.close();
+    playTitleMusic();
+  });
+  initializeDialog.showModal();
 
   [startButton, titleScreen].forEach((button) => button.addEventListener("click", startGame));
   stopButton.addEventListener("click", stopGame);

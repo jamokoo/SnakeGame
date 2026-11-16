@@ -87,6 +87,22 @@ button:focus,
 .screen { position: absolute; z-index: 2; inset: 0; overflow: hidden; }
 .screen-art { display: block; width: 100%; height: 100%; }
 .title-screen { padding: 0; border: 0; background: transparent; width: 100%; height: 100%; }
+.title-lyrics {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 85%;
+  transform: translate(-50%, -50%);
+  padding: 0.4em 0.6em;
+  color: #fff;
+  background: rgb(0 0 0 / 75%);
+  border-radius: 0.5em;
+  font-size: clamp(0.9rem, 3.5cqw, 1.4rem);
+  font-weight: 700;
+  line-height: 1.3;
+  text-align: center;
+  pointer-events: none;
+}
 
 .result {
   position: absolute;
@@ -118,7 +134,7 @@ button:focus,
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
 .notice { position: fixed; z-index: 3; left: 50%; top: 16px; transform: translateX(-50%); width: min(90vw, 600px); margin: 0; padding: 12px; color: #000; background: #fff3cc; border: 1px solid #613416; font-size: 1rem; }
 
-.layout-button {
+.layout-button, .music-button {
   position: fixed;
   z-index: 3;
   top: 12px;
@@ -135,6 +151,33 @@ button:focus,
 }
 
 .layout-button[aria-pressed="true"] { color: #b7ee94; }
+.music-button { right: 60px; }
+.music-button:focus-visible { outline: 2px solid #ffe4a0; outline-offset: 2px; }
+
+.initialize-overlay {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.initialize-overlay button {
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  color: #ffe4a0;
+  background: rgb(9 40 37 / 90%);
+  border: 0;
+  font-size: clamp(1.25rem, 3vw, 2rem);
+}
+
+.initialize-overlay button:focus-visible { outline: 3px solid #ffe4a0; outline-offset: -8px; }
 
 @media (max-aspect-ratio: 1 / 1) {
   .game {

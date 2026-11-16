@@ -14,10 +14,19 @@
     <script src="game.js" defer></script>
   </head>
   <body data-layout="modern">
-    <button id="layout" class="layout-button" type="button" aria-label="Switch to original dashboard layout" aria-pressed="false" title="Switch to original dashboard layout">
+    <dialog id="initialize" class="initialize-overlay" aria-label="Start Snake">
+      <button id="initialize-button" type="button" autofocus>Click, tap, or press Enter to begin</button>
+    </dialog>
+    <button id="layout" class="layout-button" type="button" aria-label="Switch to original dashboard version" aria-pressed="false" title="Switch to original dashboard version">
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
         <rect x="3" y="3" width="18" height="18" rx="2"></rect>
         <path d="M3 9h18M9 9v12"></path>
+      </svg>
+    </button>
+    <button id="music-mute" class="music-button" type="button" aria-label="Mute music" aria-pressed="false" title="Mute music">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path d="M3 9v6h4l5 4V5L7 9H3zM15 9a4 4 0 0 1 0 6M17 6a8 8 0 0 1 0 12"></path>
+        <path id="music-muted-mark" d="M3 3l18 18" hidden></path>
       </svg>
     </button>
     <main class="game" aria-label="IoT-Ticket Snake">
@@ -37,6 +46,7 @@
         <div id="board" class="board" role="img" aria-label="10 by 10 Snake board" tabindex="0"></div>
         <button id="title-screen" class="screen title-screen" type="button" aria-label="Start game" disabled>
           <img class="screen-art" src="assets/images/title.jpg" alt="IoT-Ticket Snake. Press Start to play." draggable="false">
+          <span id="title-lyrics" class="title-lyrics" aria-hidden="true" hidden></span>
         </button>
         <section id="result-screen" class="screen result-screen" aria-labelledby="result-title" hidden>
           <h2 id="result-title" class="visually-hidden">Game over</h2>
