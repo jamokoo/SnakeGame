@@ -25,6 +25,10 @@
   const eatSound = new Audio("assets/audio/eat.mp3");
   const deathSound = new Audio("assets/audio/death.mp3");
   const audioRequests = new Map();
+  const AudioContextConstructor = window.AudioContext || window.webkitAudioContext;
+  const audioContext = AudioContextConstructor ? new AudioContextConstructor() : null;
+  const soundEffectBuffers = new Map();
+  const soundEffectSources = new Map();
   const titleCues = [
     [3.49, "IOT-Ticket Snake, slithering through the leaves,"],
     [8.39, "Looking for apples, under the jungle eaves."],
@@ -148,6 +152,11 @@
 
   function stopAudio(audio) {
     audioRequests.delete(audio);
+    const source = soundEffectSources.get(audio);
+    if (source) {
+      soundEffectSources.delete(audio);
+      source.stop();
+    }
     audio.pause();
     audio.currentTime = 0;
   }
@@ -172,6 +181,18 @@
 
   function playAudio(audio) {
     if (!soundEnabled) return;
+    const buffer = soundEffectBuffers.get(audio);
+    if (audio !== music && buffer && audioContext.state === "running") {
+      const source = audioContext.createBufferSource();
+      source.buffer = buffer;
+      source.connect(audioContext.destination);
+      soundEffectSources.set(audio, source);
+      source.addEventListener("ended", () => {
+        if (soundEffectSources.get(audio) === source) soundEffectSources.delete(audio);
+      }, { once: true });
+      source.start();
+      return;
+    }
     const request = {};
     audioRequests.set(audio, request);
     audio.play().catch((error) => {
@@ -190,6 +211,30 @@
     music.src = source;
   }
 
+  function preloadSoundEffects() {
+    if (!audioContext || !window.fetch) return;
+    [eatSound, deathSound].forEach((audio) => {
+      window.fetch(audio.src)
+        .then((response) => {
+          if (!response.ok) throw new Error(`Could not load ${audio.src}`);
+          return response.arrayBuffer();
+        })
+        .then((data) => audioContext.decodeAudioData(data))
+        .then((buffer) => soundEffectBuffers.set(audio, buffer))
+        .catch((error) => {
+          console.error(`Could not preload ${audio.src}; using browser audio playback instead.`, error);
+        });
+    });
+  }
+
+  function resumeAudioContext() {
+    if (audioContext && audioContext.state !== "running") {
+      audioContext.resume().catch((error) => {
+        console.error("Could not start low-latency sound playback.", error);
+      });
+    }
+  }
+
   function playMusic(track, loop) {
     stopAudio(music);
     preloadMusic(track);
@@ -202,6 +247,7 @@
   }
 
   preloadMusic(document.body.dataset.layout === "dashboard" ? "title" : "title_new");
+  preloadSoundEffects();
 
   function spritePath(name) {
     return `assets/sprites/${name}.${name === "apple" || name === "empty" ? "svg" : "png"}`;
@@ -324,6 +370,7 @@
 
   initializeDialog.addEventListener("cancel", (event) => event.preventDefault());
   initializeButton.addEventListener("click", () => {
+    resumeAudioContext();
     initializeDialog.close();
     playTitleMusic();
   });

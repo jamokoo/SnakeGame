@@ -4,7 +4,14 @@ const fs = require("node:fs");
 const vm = require("node:vm");
 const { createSharedScore } = require("../shared-score.js");
 
-async function loadGame(request, sharedUrl = "https://example.test/", playAudio = () => Promise.resolve(), step = (state) => ({ ...state, score: 11 })) {
+async function loadGame(
+  request,
+  sharedUrl = "https://example.test/",
+  playAudio = () => Promise.resolve(),
+  step = (state) => ({ ...state, score: 11 }),
+  AudioContextConstructor = null,
+  fetchAudio = async () => ({ ok: true, arrayBuffer: async () => new ArrayBuffer(0) }),
+) {
   const elements = new Map();
   const audio = [];
   function element(id) {
@@ -30,6 +37,8 @@ async function loadGame(request, sharedUrl = "https://example.test/", playAudio 
         getBoard: () => [["empty"]],
       },
       createSharedScore: (url) => createSharedScore(url, request),
+      AudioContext: AudioContextConstructor,
+      fetch: fetchAudio,
     },
     document: {
       body: { dataset: { layout: "modern" } },
@@ -186,6 +195,46 @@ test("initialization reports audio playback errors and allows starting a round",
   assert.match(app.element("notice").textContent, /Audio could not be played/);
   app.element("start").listeners.click();
   assert.equal(app.timers.has(500), true);
+});
+
+test("apple sounds play from preloaded Web Audio buffers", async () => {
+  class FakeAudioContext {
+    constructor() {
+      this.state = "suspended";
+      this.destination = {};
+      this.sources = [];
+      FakeAudioContext.instance = this;
+    }
+    resume() {
+      this.state = "running";
+      return Promise.resolve();
+    }
+    decodeAudioData() { return Promise.resolve({}); }
+    createBufferSource() {
+      const source = {
+        addEventListener() {},
+        connect() {},
+        start() { this.started = true; },
+        stop() {},
+      };
+      this.sources.push(source);
+      return source;
+    }
+  }
+  const playedAudio = [];
+  const app = await loadGame(
+    async () => Response.json({ score: 0 }),
+    "",
+    (audio) => { playedAudio.push(audio.src); return Promise.resolve(); },
+    undefined,
+    FakeAudioContext,
+  );
+  app.element("initialize-button").listeners.click();
+  app.element("start").listeners.click();
+  app.timers.get(500)();
+  await new Promise(setImmediate);
+  assert.deepEqual(playedAudio, ["assets/audio/title_new.mp3", "assets/audio/ingame.mp3"]);
+  assert.equal(FakeAudioContext.instance.sources[0].started, true);
 });
 
 test("a late title playback rejection does not interrupt game music", async () => {
