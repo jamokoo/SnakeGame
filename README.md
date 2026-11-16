@@ -38,8 +38,7 @@ from this directory and open <http://localhost:8000>.
 
 All assets use relative URLs, so the game works under a GitHub Pages repository
 path as well as at a domain root. GitHub Pages serves the separate image and MP3
-files normally. The dashboard JSON and extraction script are not loaded by the
-webpage and can be omitted from a website-only deployment.
+files normally.
 
 ## Controls and rules
 
@@ -100,10 +99,8 @@ source attribution, are retained; extraction does not grant new usage rights.
 With Node.js 18 or newer, run:
 
 ```powershell
-node .\scripts\extract-assets.cjs
 node --test .\tests\game-core.test.cjs
 node --test .\tests\shared-score.test.cjs
 ```
 
-The extraction script reads the supplied JSON without executing its embedded
-scripts. The webpage itself uses plain HTML, CSS, and JavaScript.
+The webpage itself uses plain HTML, CSS, and JavaScript.
