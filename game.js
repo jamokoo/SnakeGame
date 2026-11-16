@@ -44,9 +44,10 @@
     [63.96, "But don't eat your tail, or it won't be long!"],
     [68, ""],
   ];
-  music.preload = "none";
-  eatSound.preload = "none";
-  deathSound.preload = "none";
+  music.preload = "auto";
+  eatSound.preload = "auto";
+  deathSound.preload = "auto";
+  let musicTrack = null;
   let soundEnabled = true;
   let highScore = 0;
   let sharedHighScore = null;
@@ -182,9 +183,16 @@
     });
   }
 
+  function preloadMusic(track) {
+    const source = `assets/audio/${track}.mp3`;
+    if (musicTrack === source) return;
+    musicTrack = source;
+    music.src = source;
+  }
+
   function playMusic(track, loop) {
     stopAudio(music);
-    music.src = `assets/audio/${track}.mp3`;
+    preloadMusic(track);
     music.loop = loop;
     playAudio(music);
   }
@@ -192,6 +200,8 @@
   function playTitleMusic() {
     playMusic(document.body.dataset.layout === "dashboard" ? "title" : "title_new", true);
   }
+
+  preloadMusic(document.body.dataset.layout === "dashboard" ? "title" : "title_new");
 
   function spritePath(name) {
     return `assets/sprites/${name}.${name === "apple" || name === "empty" ? "svg" : "png"}`;
@@ -305,6 +315,9 @@
     layoutButton.setAttribute("aria-pressed", String(dashboard));
     layoutButton.title = label;
     swipeStart = null;
+    if (initializeDialog.open) {
+      preloadMusic(dashboard ? "title" : "title_new");
+    }
     if (!initializeDialog.open && !titleScreen.hidden) playTitleMusic();
     updateTitleLyrics();
   });

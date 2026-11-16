@@ -161,6 +161,10 @@ test("initialization starts title music and a round switches to game music", asy
     return Promise.resolve();
   });
   assert.equal(app.element("initialize").open, true);
+  assert.equal(app.audio[0].src, "assets/audio/title_new.mp3");
+  assert.equal(app.audio[0].preload, "auto");
+  assert.equal(app.audio[1].preload, "auto");
+  assert.equal(app.audio[2].preload, "auto");
   assert.deepEqual(played, []);
   let cancelled = false;
   app.element("initialize").listeners.cancel({ preventDefault() { cancelled = true; } });
@@ -235,6 +239,7 @@ test("initialization plays the title track for the selected layout", async () =>
   });
   app.element("layout").listeners.click();
   assert.deepEqual(played, []);
+  assert.equal(app.audio[0].src, "assets/audio/title.mp3");
   app.element("initialize-button").listeners.click();
   assert.deepEqual(played, ["assets/audio/title.mp3"]);
 });
