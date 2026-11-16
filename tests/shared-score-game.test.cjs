@@ -3,6 +3,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const vm = require("node:vm");
 const { createSharedScore } = require("../shared-score.js");
+const { OPPOSITE_DIRECTIONS } = require("../game-core.js");
 
 async function loadGame(
   request,
@@ -19,19 +20,25 @@ async function loadGame(
       elements.set(id, {
         id, dataset: {}, hidden: false, textContent: "", listeners: {}, attributes: {},
         addEventListener(type, callback) { this.listeners[type] = callback; },
-        setAttribute(name, value) { this.attributes[name] = value; }, append() {}, focus() {},
+        setAttribute(name, value) { this.attributes[name] = value; }, append() {}, focus() {}, setPointerCapture() {},
         showModal() { this.open = true; }, close() { this.open = false; },
       });
     }
     return elements.get(id);
   }
   const timers = new Map();
+  const documentListeners = {};
+  const directionButtons = ["up", "right", "down", "left"].map((direction) => {
+    const button = element(`direction-${direction}`);
+    button.dataset.direction = direction;
+    return button;
+  });
   const storage = new Map([["iot-ticket-snake-high-score", "8"]]);
   const gameState = { snake: [{ x: 0, y: 0 }], score: 0, direction: "up", status: "running" };
   const context = {
     window: {
       SnakeGame: {
-        SIZE: 1, TICK_MS: 500, SPRITES: [], OPPOSITE_DIRECTIONS: {},
+        SIZE: 1, TICK_MS: 500, SPRITES: [], OPPOSITE_DIRECTIONS,
         createGame: () => ({ ...gameState }),
         step,
         getBoard: () => [["empty"]],
@@ -44,9 +51,9 @@ async function loadGame(
       body: { dataset: { layout: "modern" } },
       getElementById: element,
       querySelector: () => ({ content: sharedUrl }),
-      querySelectorAll: () => [],
+      querySelectorAll: () => directionButtons,
       createElement: () => element("tile"),
-      addEventListener() {},
+      addEventListener(type, callback) { documentListeners[type] = callback; },
     },
     localStorage: { getItem: (key) => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) },
     Audio: class {
@@ -61,8 +68,58 @@ async function loadGame(
   };
   vm.runInNewContext(fs.readFileSync(require.resolve("../game.js"), "utf8"), context);
   await new Promise(setImmediate);
-  return { element, timers, storage, audio };
+  return { element, timers, storage, audio, documentListeners };
 }
+
+test("direction buttons respond on press without repeating on click", async () => {
+  const directions = [];
+  const app = await loadGame(null, "", undefined, (state, direction) => {
+    directions.push(direction);
+    return { ...state, direction };
+  });
+  app.element("initialize-button").listeners.click();
+  app.element("start").listeners.click();
+  const right = app.element("direction-right");
+  right.listeners.pointerdown({ button: 0, pointerType: "touch" });
+  app.timers.get(500)();
+  app.element("direction-down").listeners.pointerdown({ button: 0, pointerType: "touch" });
+  right.listeners.click({ detail: 1 });
+  app.timers.get(500)();
+  assert.deepEqual(directions, ["right", "down"]);
+
+  app.element("direction-left").listeners.click({ detail: 0 });
+  app.timers.get(500)();
+  assert.equal(directions.at(-1), "left");
+
+  app.element("direction-down").listeners.pointerdown({ button: 0, pointerType: "touch" });
+  app.element("stop").listeners.click();
+  app.element("start").listeners.click();
+  app.timers.get(500)();
+  assert.equal(directions.at(-1), "up");
+});
+
+test("only the latest valid direction is pending", async () => {
+  const directions = [];
+  const app = await loadGame(null, "", undefined, (state, direction) => {
+    directions.push(direction);
+    return { ...state, direction };
+  });
+  const press = (key) => app.documentListeners.keydown({
+    key, target: { closest: () => null }, preventDefault() {},
+  });
+  app.element("initialize-button").listeners.click();
+  app.element("start").listeners.click();
+  press("ArrowRight");
+  press("ArrowDown");
+  app.timers.get(500)();
+  assert.equal(directions.at(-1), "right");
+  press("ArrowUp");
+  press("ArrowDown");
+  app.timers.get(500)();
+  assert.equal(directions.at(-1), "down");
+  app.timers.get(500)();
+  assert.equal(directions.at(-1), "down");
+});
 
 test("game only fetches on load and round end and submits the final score", async () => {
   const requests = [];
@@ -137,7 +194,7 @@ test("failed round score is retried at the next round end", async () => {
   app.timers.get(500)();
   app.element("stop").listeners.click();
   await new Promise(setImmediate);
-  assert.match(app.element("notice").textContent, /unavailable/);
+  assert.match(app.element("notice-message").textContent, /unavailable/);
   app.element("start").listeners.click();
   app.element("stop").listeners.click();
   await new Promise(setImmediate);
@@ -151,7 +208,7 @@ test("game shows its personal score and a warning when the shared service fails"
   const app = await loadGame(async () => { throw new Error("offline"); });
   assert.equal(app.element("high-score").textContent, 8);
   assert.equal(app.element("high-score-label").textContent, "Hi-Score Local");
-  assert.match(app.element("notice").textContent, /unavailable/);
+  assert.match(app.element("notice-message").textContent, /unavailable/);
   assert.equal(app.element("notice").hidden, false);
 });
 
@@ -192,9 +249,35 @@ test("initialization reports audio playback errors and allows starting a round",
   app.element("initialize-button").listeners.click();
   await new Promise(setImmediate);
   assert.equal(app.element("initialize").open, false);
-  assert.match(app.element("notice").textContent, /Audio could not be played/);
+  assert.match(app.element("notice-message").textContent, /Audio could not be played/);
+  assert.match(app.element("notice-message").textContent, /new round to retry, or reload/);
+  app.element("notice").listeners.click();
+  assert.equal(app.element("notice").hidden, true);
   app.element("start").listeners.click();
   assert.equal(app.timers.has(500), true);
+  await new Promise(setImmediate);
+  assert.equal(app.element("notice").hidden, false);
+});
+
+test("successful audio retry clears only the audio warning", async () => {
+  let fail = true;
+  const app = await loadGame(null, "", () => fail ? Promise.reject(new Error("audio unavailable")) : Promise.resolve());
+  app.element("initialize-button").listeners.click();
+  await new Promise(setImmediate);
+  assert.equal(app.element("notice").hidden, false);
+  fail = false;
+  app.element("start").listeners.click();
+  await new Promise(setImmediate);
+  assert.equal(app.element("notice").hidden, true);
+});
+
+test("successful audio playback does not dismiss an unrelated warning", async () => {
+  const app = await loadGame(async () => { throw new Error("offline"); }, "https://example.test/");
+  assert.match(app.element("notice-message").textContent, /Shared hi-score unavailable/);
+  app.element("initialize-button").listeners.click();
+  await new Promise(setImmediate);
+  assert.match(app.element("notice-message").textContent, /Shared hi-score unavailable/);
+  assert.equal(app.element("notice").hidden, false);
 });
 
 test("apple sounds play from preloaded Web Audio buffers", async () => {
@@ -250,7 +333,7 @@ test("a late title playback rejection does not interrupt game music", async () =
   rejectTitle(new Error("playback interrupted"));
   await new Promise(setImmediate);
   assert.deepEqual(played, ["assets/audio/title_new.mp3", "assets/audio/ingame.mp3"]);
-  assert.notEqual(app.element("notice").textContent, "Audio could not be played. Check your browser's sound permissions, then press Start to retry.");
+  assert.doesNotMatch(app.element("notice-message").textContent, /Audio could not be played/);
 });
 
 test("layout changes restart the matching title track only on the title screen", async () => {

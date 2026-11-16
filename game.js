@@ -19,6 +19,8 @@
   const highScoreLabel = document.getElementById("high-score-label");
   const status = document.getElementById("status");
   const notice = document.getElementById("notice");
+  const noticeMessage = document.getElementById("notice-message");
+  const audioErrorMessage = "Audio could not be played. Check your browser's audio support and permissions. Start a new round to retry, or reload the page.";
   const directionButtons = [...document.querySelectorAll("[data-direction]")];
   const storageKey = "iot-ticket-snake-high-score";
   const music = new Audio();
@@ -66,9 +68,17 @@
 
   function report(message, error) {
     console.error(message, error);
-    notice.textContent = message;
+    noticeMessage.textContent = message;
     notice.hidden = false;
   }
+
+  function clearNotice(message) {
+    if (message !== undefined && noticeMessage.textContent !== message) return;
+    notice.hidden = true;
+    noticeMessage.textContent = "";
+  }
+
+  notice.addEventListener("click", () => clearNotice());
 
   try {
     const saved = localStorage.getItem(storageKey);
@@ -108,10 +118,7 @@
     sharedHighScore = Math.max(sharedHighScore ?? 0, score);
     sharedScoreUnavailable = false;
     displayHighScore();
-    if (notice.textContent === "Shared hi-score unavailable; showing your personal hi-score.") {
-      notice.hidden = true;
-      notice.textContent = "";
-    }
+    clearNotice("Shared hi-score unavailable; showing your personal hi-score.");
   }
 
   function refreshSharedScore(roundScore) {
@@ -195,12 +202,14 @@
     }
     const request = {};
     audioRequests.set(audio, request);
-    audio.play().catch((error) => {
+    audio.play().then(() => {
+      if (audioRequests.get(audio) === request) clearNotice(audioErrorMessage);
+    }).catch((error) => {
       // Switching tracks intentionally cancels an outstanding play request.
       if (audioRequests.get(audio) !== request) return;
       soundEnabled = false;
       [music, eatSound, deathSound].forEach(stopAudio);
-      report("Audio could not be played. Check your browser's sound permissions, then press Start to retry.", error);
+      report(audioErrorMessage, error);
     });
   }
 
@@ -379,7 +388,12 @@
   [startButton, titleScreen].forEach((button) => button.addEventListener("click", startGame));
   stopButton.addEventListener("click", stopGame);
   directionButtons.forEach((button) => {
-    button.addEventListener("click", () => requestDirection(button.dataset.direction));
+    button.addEventListener("pointerdown", (event) => {
+      if (event.button === 0) requestDirection(button.dataset.direction);
+    });
+    button.addEventListener("click", (event) => {
+      if (event.detail === 0) requestDirection(button.dataset.direction);
+    });
   });
 
   const keys = {
